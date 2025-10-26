@@ -1,1 +1,7 @@
 /target/
+
+
+# Android APK/AAB files (compiled binaries)
+*.apk
+*.ap_
+*.aab
