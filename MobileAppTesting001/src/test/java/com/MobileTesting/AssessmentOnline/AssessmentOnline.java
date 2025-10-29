@@ -1,6 +1,7 @@
 package com.MobileTesting.AssessmentOnline;
 
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -15,7 +16,7 @@ import io.appium.java_client.AppiumDriver;
 public class AssessmentOnline {
 
     @Test
-    public void testLocators() {
+    public void testLocators()  {
 
         // Create Appium driver session
         AppiumDriver driver = DriverUtility.initAndroidDriverSession();
@@ -23,7 +24,7 @@ public class AssessmentOnline {
         // Wait object
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(120));
 
-        // ✅ Wait until the app's main activity is fully loaded
+        //  Wait until the app's main activity is fully loaded
         System.out.println("Waiting for app to launch...");
 
         // Adjust the first element you expect on the login screen
@@ -76,42 +77,76 @@ public class AssessmentOnline {
         System.out.println("Inspection icon found. Clicking...");
         inspectionIcon.click();
         
+     // Wait object
+        WebDriverWait wait2 = new WebDriverWait(driver, Duration.ofSeconds(120));
+        
+        String permissionText = "While using the app";
+        
+
         try {
-            WebElement locationAllowBtn = driver.findElement(
-                AppiumBy.id("com.android.permissioncontroller:id/permission_allow_foreground_only_button"));
-            locationAllowBtn.click();
-            System.out.println("Clicked Allow for location access");
+            for (int i = 0; i < 2; i++) {
+                try {
+                    WebElement allowButton = wait1.until(ExpectedConditions.presenceOfElementLocated(
+                            AppiumBy.androidUIAutomator("new UiSelector().text(\"" + permissionText + "\")")));
+                    allowButton.click();
+                    System.out.println(" Clicked '" + permissionText + "' permission popup (" + (i + 1) + ")");
+                    Thread.sleep(500); // short delay for second popup
+                } catch (Exception e) {
+                    // break if not found second time
+                    break;
+                }
+            }
         } catch (Exception e) {
-            System.out.println("No location permission popup detected.");
+            System.out.println(" No 'While using the app' popup detected or click failed: " + e.getMessage());
+        }
+    
+        
+        
+        try {
+            // VIN input
+            WebElement vinInput = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                AppiumBy.xpath("//android.widget.AutoCompleteTextView[@resource-id='io.clearquote.assessment:id/acInput' and @text='VIN']")));
+            vinInput.click();
+            vinInput.sendKeys("TESTUSWEBUI002000");
+            System.out.println(" VIN entered successfully: TESTUSWEBUI002000");
+
+            // Make input
+            WebElement makeInput = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                AppiumBy.xpath("(//android.widget.AutoCompleteTextView[@resource-id='io.clearquote.assessment:id/acInput'])[2]")));
+            makeInput.click();
+            makeInput.sendKeys("Van");
+            System.out.println(" Make entered successfully");
+
+            // Model input
+            WebElement modelInput = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                AppiumBy.xpath("(//android.widget.AutoCompleteTextView[@resource-id='io.clearquote.assessment:id/acInput'])[3]")));
+            modelInput.click();
+            modelInput.sendKeys("Any Model");
+            System.out.println(" Model entered successfully");
+
+        } catch (Exception e) {
+            System.out.println(" Failed to enter VIN/Make/Model: " + e.getMessage());
         }
         
-     // 🔹 VIN entry field
-        WebElement vinField = wait1.until(ExpectedConditions.visibilityOfElementLocated(
-                AppiumBy.id("io.clearquote.assessment:id/acInput")));
-        System.out.println("VIN field found. Entering VIN...");
-        vinField.sendKeys("TESTUSWEBUI002000");
-        
-     // Wait object
-        WebDriverWait wait2 = new WebDriverWait(driver, Duration.ofSeconds(30));
+        try {
+            WebDriverWait wait3 = new WebDriverWait(driver, Duration.ofSeconds(60));
 
-        // 🔹 Next Step button (1st page)
-        WebElement nextStep1 = wait1.until(ExpectedConditions.elementToBeClickable(
+            // Wait until the button is clickable
+            WebElement nextStepButton = wait1.until(ExpectedConditions.elementToBeClickable(
                 AppiumBy.id("io.clearquote.assessment:id/btnNextStep")));
-        System.out.println("Next Step (1st page) button found. Clicking...");
-        nextStep1.click();
-        
-        // Wait object
-        WebDriverWait wait3 = new WebDriverWait(driver, Duration.ofSeconds(30));
 
-        // 🔹 Next Step button (2nd page)
-        WebElement nextStep2 = wait1.until(ExpectedConditions.elementToBeClickable(
-                AppiumBy.id("io.clearquote.assessment:id/btnNextStep")));
-        System.out.println("Next Step (2nd page) button found. Clicking...");
-        nextStep2.click();
+
+            // Click the button
+            nextStepButton.click();
+            System.out.println(" 'Next Step' button clicked successfully.");
+
+        } catch (Exception e) {
+            System.out.println(" Failed to click 'Next Step' button: " + e.getMessage());
+        }
 
         
         // Wait object
-        WebDriverWait wait4 = new WebDriverWait(driver, Duration.ofSeconds(30));
+        WebDriverWait wait4 = new WebDriverWait(driver, Duration.ofSeconds(200));
         
         
         // === Image Capture Section ===
@@ -135,6 +170,6 @@ public class AssessmentOnline {
         System.out.println("Done button found. Clicking...");
         doneButton.click();
 
-        System.out.println("✅ Inspection flow completed successfully.");
+        System.out.println(" Inspection flow completed successfully.");
     }
 }
